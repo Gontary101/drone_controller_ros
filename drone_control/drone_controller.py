@@ -5,6 +5,7 @@ from gazebo_msgs.srv import ApplyBodyWrench
 from geometry_msgs.msg import Wrench, Vector3
 import time
 
+
 class DroneController(Node):
     def __init__(self):
         super().__init__('drone_controller')
@@ -21,6 +22,7 @@ class DroneController(Node):
         # Run the sequence (this is a simple synchronous example)
         self.execute_sequence()
 
+    
     def apply_wrench(self, body_name, force: Vector3, torque: Vector3, duration_sec: float):
         req = ApplyBodyWrench.Request()
         req.body_name = body_name  # e.g., "advanced_quadrotor::base_link"
@@ -40,6 +42,12 @@ class DroneController(Node):
             self.get_logger().info(f'Applied wrench on {body_name}')
         else:
             self.get_logger().error('Failed to apply wrench')
+        # In drone_controller.py
+        if not self.client.wait_for_service(timeout_sec=3.0):
+            self.get_logger().error('Service /apply_body_wrench not available, shutting down.')
+            rclpy.shutdown()
+            return
+
 
     def execute_sequence(self):
         # Phase 1: Take off (apply upward force)
