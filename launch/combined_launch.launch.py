@@ -1,0 +1,29 @@
+#!/usr/bin/env python3
+import os
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription, TimerAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
+
+this_dir = os.path.dirname(__file__)
+gazebo_launch_file = os.path.join(this_dir, 'gazebo_launch.launch.py')
+
+def generate_launch_description():
+    return LaunchDescription([
+        # Include the Gazebo launch file
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(gazebo_launch_file)
+        ),
+        # Launch the control node after a delay (to ensure the drone is spawned)
+        TimerAction(
+            period=10.0,
+            actions=[
+                Node(
+                    package='drone_control',
+                    executable='drone_controller',
+                    name='drone_controller',
+                    output='screen'
+                )
+            ]
+        )
+    ])
