@@ -3,19 +3,18 @@ import os
 from launch import LaunchDescription
 from launch.actions import ExecuteProcess, TimerAction
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    # Adjust the path to your URDF file as needed:
-    urdf_file = os.path.join(
-        os.getenv('HOME'), 'drone_ws', 'drone_control', 'urdf', 'advanced_quadrotor.urdf'
-    )
+    # Use the package share directory to locate the URDF file
+    urdf_file = os.path.join(get_package_share_directory('drone_control'), 'urdf', 'advanced_quadrotor.urdf')
     return LaunchDescription([
-        # Launch Ignition Gazebo
+        # Launch Ignition Gazebo (using default world)
         ExecuteProcess(
-            cmd=['ign', 'gazebo', '-v', '4', '-r', 'empty.sdf'],
+            cmd=['ign', 'gazebo', '-v', '4', '-r'],
             output='screen'
         ),
-        # Spawn the drone after waiting 5 seconds for Ignition Gazebo to start
+        # Spawn the drone model after a 5-second delay for Gazebo to initialize
         TimerAction(
             period=5.0,
             actions=[

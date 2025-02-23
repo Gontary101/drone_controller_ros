@@ -10,20 +10,20 @@ gazebo_launch_file = os.path.join(this_dir, 'gazebo_launch.launch.py')
 
 def generate_launch_description():
     return LaunchDescription([
-        # Include the Ignition Gazebo launch file
+        # Launch Ignition Gazebo via the included launch file
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(gazebo_launch_file)
         ),
-        # Bridge ROS 2 /drone/wrench to Ignition Gazebo topic
+        # Bridge ROS and Gazebo topics with the corrected syntax
         Node(
             package='ros_gz_bridge',
             executable='parameter_bridge',
-            arguments=['/drone/wrench@geometry_msgs/msg/Wrench]model/advanced_quadrotor/link/base_link/wrench'],
+            arguments=['/drone/wrench@geometry_msgs/msg/Wrench@ignition.msgs.Wrench'],
             output='screen'
         ),
-        # Launch the drone controller node after a delay to ensure sim is ready
+        # Launch the drone controller node after a delay to ensure Gazebo is ready
         TimerAction(
-            period=10.0,  # 10-second delay to allow Gazebo to start
+            period=10.0,
             actions=[
                 Node(
                     package='drone_control',

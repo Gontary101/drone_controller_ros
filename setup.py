@@ -9,14 +9,14 @@ setup(
     version='0.0.0',
     packages=[package_name],
     data_files=[
-        # This line installs the package.xml
-        ('share/ament_index/resource_index/packages',
-         ['resource/' + package_name]),
-        # This line installs the package.xml into share/<package_name>
+        # Install the resource file for ament index
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
+        # Install the package.xml file
         ('share/' + package_name, ['package.xml']),
-
-        # **Important**: Install all .launch.py files from your 'launch' folder
+        # Install all launch files
         ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
+        # Install URDF files
+        ('share/' + package_name + '/urdf', glob('urdf/*.urdf')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
