@@ -1,67 +1,44 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from gazebo_msgs.srv import ApplyBodyWrench
 from geometry_msgs.msg import Wrench, Vector3
 import time
-
 
 class DroneController(Node):
     def __init__(self):
         super().__init__('drone_controller')
-        # Create a service client for applying a wrench to a body in Gazebo
-        self.client = self.create_client(ApplyBodyWrench, '/apply_body_wrench')
-        while not self.client.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Waiting for /apply_body_wrench service...')
-        self.get_logger().info('Service available. Starting control sequence...')
+        # Create a publisher for the wrench topic
+        self.wrench_pub = self.create_publisher(Wrench, '/drone/wrench', 10)
+        self.get_logger().info('Wrench publisher created. Starting control sequence...')
         
-        # Define durations (in seconds) for each phase
-        self.takeoff_duration = 5.0  
-        self.forward_duration = 5.0  
-        
-        # Run the sequence (this is a simple synchronous example)
+        self.takeoff_duration = 5.0  # Duration for takeoff in seconds
+        self.forward_duration = 5.0  # Duration for forward movement in seconds
         self.execute_sequence()
 
-    
-    def apply_wrench(self, body_name, force: Vector3, torque: Vector3, duration_sec: float):
-        req = ApplyBodyWrench.Request()
-        req.body_name = body_name  # e.g., "advanced_quadrotor::base_link"
-        req.reference_frame = "world"  # apply forces in world frame
-        req.wrench.force = force
-        req.wrench.torque = torque
-        # Start immediately
-        req.start_time.sec = 0  
-        req.start_time.nanosec = 0
-        # Set duration
-        req.duration.sec = int(duration_sec)
-        req.duration.nanosec = int((duration_sec - int(duration_sec)) * 1e9)
-        
-        future = self.client.call_async(req)
-        rclpy.spin_until_future_complete(self, future)
-        if future.result() is not None:
-            self.get_logger().info(f'Applied wrench on {body_name}')
-        else:
-            self.get_logger().error('Failed to apply wrench')
-        # In drone_controller.py
-        if not self.client.wait_for_service(timeout_sec=3.0):
-            self.get_logger().error('Service /apply_body_wrench not available, shutting down.')
-            rclpy.shutdown()
-            return
-
+    def apply_wrench(self, force: Vector3, torque: Vector3, duration_sec: float):
+        """Publish wrench messages to apply force and torque for a specified duration."""
+        wrench = Wrench()
+        wrench.force = force
+        wrench.torque = torque
+        start_time = time.time()
+        rate = self.create_rate(100)  # Publish at 100 Hz
+        while time.time() - start_time < duration_sec:
+            self.wrench_pub.publish(wrench)
+            rate.sleep()
+        self.get_logger().info(f'Applied wrench for {duration_sec} seconds')
 
     def execute_sequence(self):
-        # Phase 1: Take off (apply upward force)
+        """Execute a sequence of movements: takeoff, then move forward."""
+        # Takeoff: Apply upward force
         self.get_logger().info('Taking off...')
-        upward_force = Vector3(x=0.0, y=0.0, z=15.0)  # adjust force as needed
+        upward_force = Vector3(x=0.0, y=0.0, z=15.0)  # Force in Newtons
         zero_torque = Vector3(x=0.0, y=0.0, z=0.0)
-        self.apply_wrench("advanced_quadrotor::base_link", upward_force, zero_torque, self.takeoff_duration)
-        time.sleep(self.takeoff_duration)
+        self.apply_wrench(upward_force, zero_torque, self.takeoff_duration)
         
-        # Phase 2: Move forward (apply force in the x direction)
+        # Move forward: Apply forward force
         self.get_logger().info('Moving forward...')
-        forward_force = Vector3(x=10.0, y=0.0, z=0.0)  # adjust force as needed
-        self.apply_wrench("advanced_quadrotor::base_link", forward_force, zero_torque, self.forward_duration)
-        time.sleep(self.forward_duration)
+        forward_force = Vector3(x=10.0, y=0.0, z=0.0)
+        self.apply_wrench(forward_force, zero_torque, self.forward_duration)
         
         self.get_logger().info('Control sequence complete. Shutting down.')
         rclpy.shutdown()
@@ -69,7 +46,7 @@ class DroneController(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = DroneController()
-    rclpy.spin(node)
+    rclpy.spin(node)  # Spin to keep the node alive until shutdown
     node.destroy_node()
     rclpy.shutdown()
 

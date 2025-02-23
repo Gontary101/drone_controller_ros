@@ -1,0 +1,19 @@
+# Backup files
+*~
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+tmp/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Ignore test directory
+test/
+
+# Ignore resource directory
+resource/

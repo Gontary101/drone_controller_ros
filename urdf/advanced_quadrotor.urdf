@@ -31,7 +31,6 @@
   <link name="base_link">
     <visual>
       <geometry>
-        <!-- Approximate the frame as a 30cm x 30cm x 3cm box -->
         <box size="0.3 0.3 0.03"/>
       </geometry>
       <material name="black"/>
@@ -40,7 +39,6 @@
       <geometry>
         <box size="0.3 0.3 0.03"/>
       </geometry>
-      <!-- Example surface friction properties -->
       <surface>
         <contact>
           <ode>
@@ -157,7 +155,6 @@
   <link name="propeller1">
     <visual>
       <geometry>
-        <!-- Thin disk with radius=0.06, length=1mm -->
         <cylinder length="0.001" radius="0.06"/>
       </geometry>
       <material name="transparent"/>
@@ -351,7 +348,7 @@
   </joint>
 
   <!-- ============================================================
-       GUARDS (Approximated as thin disks; or remove them entirely)
+       GUARDS (Approximated as thin disks)
        ============================================================ -->
   <link name="guard1">
     <visual>
@@ -749,7 +746,7 @@
   </joint>
 
   <!-- ============================================================
-       GAZEBO SENSORS & PLUGINS
+       GAZEBO SENSORS
        ============================================================ -->
   <!-- IMU, GPS, Magnetometer on Flight Controller -->
   <gazebo reference="flight_controller">
@@ -832,21 +829,15 @@
           <p2>0.001</p2>
         </distortion>
       </camera>
-      <plugin filename="libgazebo_ros_camera.so" name="camera_plugin">
-        <ros>
-          <namespace>/camera</namespace>
-          <remapping>image_raw:=image_raw</remapping>
-        </ros>
-      </plugin>
     </sensor>
   </gazebo>
 
-  <!-- Lidar Sensor Plugin on lidar_link -->
+  <!-- Lidar Sensor on lidar_link -->
   <gazebo reference="lidar_link">
-    <sensor name="lidar_sensor" type="ray">
+    <sensor name="lidar_sensor" type="lidar">
       <always_on>true</always_on>
       <update_rate>30</update_rate>
-      <ray>
+      <lidar>
         <scan>
           <horizontal>
             <samples>360</samples>
@@ -860,13 +851,7 @@
           <max>10.0</max>
           <resolution>0.01</resolution>
         </range>
-      </ray>
-      <plugin filename="libgazebo_ros_laser.so" name="lidar_plugin">
-        <ros>
-          <namespace>/lidar</namespace>
-          <remapping>scan:=scan</remapping>
-        </ros>
-      </plugin>
+      </lidar>
     </sensor>
   </gazebo>
 
@@ -889,51 +874,18 @@
           <resolution>0.01</resolution>
         </range>
       </ray>
-      <plugin filename="libgazebo_ros_range.so" name="sonar_plugin">
-        <ros>
-          <namespace>/sonar</namespace>
-          <remapping>range:=sonar_range</remapping>
-        </ros>
-      </plugin>
     </sensor>
-  </gazebo>
-
-  <!-- Barometer (Pressure Sensor) on base_link -->
-  <gazebo reference="base_link">
-    <sensor name="barometer_sensor" type="pressure">
+    <sensor name="barometer_sensor" type="air_pressure">
       <always_on>true</always_on>
       <update_rate>20</update_rate>
-      <pressure>
+      <air_pressure>
         <noise>
           <type>gaussian</type>
           <mean>0</mean>
           <stddev>0.02</stddev>
         </noise>
-      </pressure>
-      <plugin filename="libgazebo_ros_pressure.so" name="barometer_plugin">
-        <ros>
-          <namespace>/baro</namespace>
-          <remapping>pressure:=baro_pressure</remapping>
-        </ros>
-      </plugin>
+      </air_pressure>
     </sensor>
-  </gazebo>
-
-  <!-- Wind & Rotor Aerodynamics Plugins on base_link -->
-  <gazebo reference="base_link">
-    <plugin filename="libgazebo_wind.so" name="wind_plugin">
-      <wind_velocity>0.0 0.0 0.0</wind_velocity>
-      <wind_variance>0.1 0.1 0.1</wind_variance>
-    </plugin>
-    <plugin filename="librotor_aero_dynamics.so" name="rotor_aero_plugin">
-      <thrust_coefficient>0.1</thrust_coefficient>
-      <drag_coefficient>0.01</drag_coefficient>
-    </plugin>
-  </gazebo>
-
-  <!-- Make sure we have gazebo_ros_init loaded -->
-  <gazebo>
-    <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so"/>
   </gazebo>
 
 </robot>

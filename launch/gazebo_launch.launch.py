@@ -10,19 +10,19 @@ def generate_launch_description():
         os.getenv('HOME'), 'drone_ws', 'drone_control', 'urdf', 'advanced_quadrotor.urdf'
     )
     return LaunchDescription([
-        # Launch Gazebo (using the standard gazebo.launch.py from gazebo_ros)
+        # Launch Ignition Gazebo
         ExecuteProcess(
-            cmd=['gazebo', '--verbose', '-s', 'libgazebo_ros_factory.so'],
+            cmd=['ign', 'gazebo', '-v', '4', '-r', 'empty.sdf'],
             output='screen'
         ),
-        # Spawn the drone after waiting 5 seconds for Gazebo to start
+        # Spawn the drone after waiting 5 seconds for Ignition Gazebo to start
         TimerAction(
             period=5.0,
             actions=[
                 Node(
-                    package='gazebo_ros',
-                    executable='spawn_entity.py',
-                    arguments=['-entity', 'advanced_quadrotor', '-file', urdf_file],
+                    package='ros_gz_sim',
+                    executable='create',
+                    arguments=['-file', urdf_file, '-name', 'advanced_quadrotor'],
                     output='screen'
                 )
             ]
